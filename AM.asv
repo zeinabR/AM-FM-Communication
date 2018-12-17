@@ -1,0 +1,146 @@
+%% Initialization
+clear ; close all; clc
+
+%% Read audio file
+%audio = audioread('SpeechDFT-16-8-mono-5secs.wav');
+fname = 'speech_dft_8kHz.wav';
+m = dsp.AudioFileReader(fname,'OutputDataType','single');
+file_info = audioinfo(fname);
+[y,fs] = audioread (fname);
+%y = y(:,1);
+%soundsc(y);
+m_min = abs(min(y));%min value of modulating signal
+Fs = file_info.SampleRate; %sampling rate of modulating signal
+
+%plot signal in time and frequency domain
+dt = 1/fs;
+t = 0:dt:(length(y)*dt)-dt;
+plot(t,y); title('original');xlabel('Seconds'); ylabel('Amplitude');
+% figure
+% plot(psd(spectrum.periodogram,y,'Fs',fs,'NFFT',length(y)));
+%% =========== Part 1:AM modulation  =============
+%AM modulation parameters
+Ac = m_min / 0.9; 
+Fc = 100000; %100 k HZ %carrier frequency
+% %resampling
+% desiredFs = 2*Fc;
+% [p,q] = rat(desiredFs / Fs);
+% y = resample(y,p,q);
+% Fs = Fs * p / q;
+% dt = 1/Fs;
+% t = 0:dt:(length(y)*dt)-dt;
+
+
+% Carrier Wave
+Carrier = (cos(2*pi*Fc*t)');%A*
+% Signal Modulation
+ya = y;
+y = (Ac + y);
+modulated = y.*Carrier;
+%envelope(modulated);
+% demodulated = abs(hilbert(modulated));
+% soundsc(demodulated);
+% %hold on;
+% figure
+% plot(t,demodulated);
+% %plotting self-AM Modulated
+% dt = 1/fs;
+% t = 0:dt:(length(y)*dt)-dt;
+% figure
+% plot(t,y);% Graphical representation of AM signal
+% title ( '  self-AM Modulated signal  ');
+% xlabel ( ' time(sec) ');
+% ylabel (' Amplitud(volt) ');
+% grid on;
+% figure
+% plot(psd(spectrum.periodogram,modulated,'Fs',fs,'NFFT',length(y)));
+
+%signal 
+for snr= 0:4:20
+    disp('hiii');
+    y = awgn(modulated,snr); %add noise
+    %demodulating
+    demodulated = abs(hilbert(y));
+    soundsc(demodulated);
+    %Issue : all so
+end
+
+%% Trials
+
+% y = ammod(y,Fc,Fs) %n=modulate(y, .5, fs, 'am'); % Amplitude modulation
+% sa = dsp.SpectrumAnalyzer('SampleRate',Fs, ...
+%     'PlotAsTwoSidedSpectrum',false, ... 'YLimits',[-60 40]);
+% step(sa,y)
+% 
+% 
+% device_writer = audioDeviceWriter(file_info.SampleRate);
+% setup(deviceWriter,
+% zeros(file_info.SamplesPerFrame,file_info.NumChannels)); while
+% ~isDone(fileReader)
+%     audioData = fileReader(); deviceWriter(audioData);
+% end %Close the input file and release the device.
+% 
+% release(fileReader); release(deviceWriter);
+% 
+% 
+% %Define the System object to filter the data. filtLP =
+% dsp.FIRFilter('Numerator',fir1(160,.15));
+% 
+% %Define the System object to play the filtered audio data. audioOut =
+% dsp.audioDeviceWriter('SampleRate',audioIn.SampleRate);
+% 
+% Define the while loop to process the audio data. while ~isDone(audioIn)
+%    audio = audioIn();    % Read audio source file y = filtLP(audio);   %
+%    Filter the data audioOut(y);         % Play the filtered data
+%end
+
+% Call function envelope to 
+% obtain the envelope data
+%--------------------------------------------
+% %[up,down] = envelope(t,y,'linear');
+% % Show the envelope alone
+% %--------------------------------------------
+% figure
+% plot(t,up); hold on;
+% plot(t,down);
+% title('The envelope of the given signal data','FontSize',18);
+% hold off;
+% % Show the original signal and its envelope
+% %--------------------------------------------
+% figure
+% plot(t,y,'g-'); hold on;
+% plot(t,up,'r-.');
+% plot(t,down,'r-.');
+% title('The envelope vs the given signal data','FontSize',18);
+% hold off;
+% %plotting Demodulated signal
+% dt = 1/fs;
+% t = 0:dt:(length(y)*dt)-dt;
+% figure
+% plot(t,y);% Graphical representation of AM signal
+% title ( '  self-AM Demodulated signal  ');
+% xlabel ( ' time(sec) ');
+% ylabel (' Amplitud(volt) ');
+% grid on;
+% figure
+% plot(psd(spectrum.periodogram,y,'Fs',fs,'NFFT',length(y)));
+
+%test modula
+% recObj = audiorecorder(Fs,8,1);         
+% disp('Start speaking.')
+% recordblocking(recObj, x);
+% disp('End of Recording.');
+% Signal=(getaudiodata(recObj))';
+% Filtering out the Signal to desired Frequency
+% beginFreq = 1000 / (Fs/2);
+% endFreq = 4000 / (Fs/2);
+% [b,a] = butter(Order, [beginFreq, endFreq], 'bandpass');
+% Bandpass filter design
+%Signal = filter(b, a, Input_Signal);
+
+
+%modulating
+%x = modulate(y,30700, 62000, 'am');
+%y = (Ac + y).*cos(2*pi*Fc*t); %shift signal
+%Built_in = ammod(ya,Fc,Fs); %modulated signal
+
